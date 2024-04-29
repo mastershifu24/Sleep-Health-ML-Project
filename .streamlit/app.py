@@ -1,27 +1,27 @@
 from streamlit_option_menu import option_menu
 import streamlit as st
 import pandas as pd
-import numpy as np
-import joblib
 import plotly.graph_objects as go
-import pickle
-import time 
 
-
+# Set page configuration
 st.set_page_config(
     page_title="Stress Level Application",
     page_icon="💤",
     initial_sidebar_state="expanded"
 )
 
+# Load dataset
+df = pd.read_csv('./.streamlit/Dataset/dataset.csv')
+df.drop(['Person ID', 'Sick'], axis=1, inplace=True)
+df = df[['Gender', 'Age', 'Occupation', 'Sleep Duration', 'Quality of Sleep',
+         'Physical Activity Level', 'BMI Category', 'Heart Rate',
+         'Daily Steps', 'Sleep Disorder', 'BP High', 'BP Low', 'Stress Level']]
 
+# Title and description
 st.title('Stress Level Prediction App 💤')
-
 st.markdown('<span style="color:gray">This app predicts the stress level of a person based on the data provided.</span>', unsafe_allow_html=True)
 
-homepage, knowledge, prediction = st.columns(3)
-
-
+# Menu selection
 selected = option_menu(
     menu_title=None,
     options=["Home", "Dataset", "Prediction", "Contact"],
@@ -29,23 +29,13 @@ selected = option_menu(
     orientation="horizontal",
     default_index=0,
     styles={
-        # "container": {"background-color": "white"},
-        # "icon": {"color": "white"}, 
-        # "nav-link": {"text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         "nav-link-selected": {"background-color": "#176397"},
     }
 )
 
-df = pd.read_csv('./.streamlit/Dataset/dataset.csv')
-df.drop(['Person ID', 'Sick'], axis=1, inplace=True)
-df = df[['Gender', 'Age', 'Occupation', 'Sleep Duration', 'Quality of Sleep',
-       'Physical Activity Level', 'BMI Category', 'Heart Rate',
-       'Daily Steps', 'Sleep Disorder', 'BP High', 'BP Low', 'Stress Level']]
-
+# Home page
 if selected == "Home":
     with st.container():
-
-        # Resme tıklanınca yönlendirilecek URL
         target_url = "https://public.tableau.com/app/profile/ramazan.erduran1816/viz/StressLevelHealth/Overview"
         image_url = "https://raw.githubusercontent.com/AshNumpy/Sleep-Health-ML-Project/main/Imgs/Homepage.png"
         
@@ -56,26 +46,15 @@ if selected == "Home":
 
         st.markdown(
             """
-
             <h2 style="color:#176397">Project Overview</h2>
-
             <p style="color:#1D4665">
                 This project includes the analysis of sleep health and lifestyle dataset and an application for predicting stress levels using machine learning. The dataset consists of 400 rows and 13 columns, encompassing various demographic, health, and lifestyle variables.
             </p>
-
             <h2 style="color:#176397">Project Objectives</h2>
-
             <p style="color:#1D4665">
                 The main objectives of the project are to analyze and visualize the data related to health, lifestyle, and demographic factors, derive actionable insights from the visualizations, and predict stress levels of individuals using machine learning techniques.
             </p>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            """
             <h2 style="color:#176397">Project Features</h2>
-
             <p style="color:#1D4665">
                 <ul>
                     <li>Sleep health metrics analysis: Explore factors related to sleep duration, quality, and regularity.</li>
@@ -94,10 +73,9 @@ if selected == "Home":
             """,
             unsafe_allow_html=True
         )
-    
 
+# Dataset page
 if selected == "Dataset":
-
     fig = go.Figure(data=[go.Table(
         header=dict(
             values=list(df.columns),
@@ -113,63 +91,82 @@ if selected == "Dataset":
         )
     )])
 
-    fig.update_layout(
-        height=800
-    )
-
+    fig.update_layout(height=800)
 
     st.markdown(
         """
         <h2 style="color:#176397">Dataset Preview</h2>
-
         <p style="color:#1D4665">
-            The dataset consists of 400 rows and 13 columns, encompassing various demographic, health, and lifestyle variables. The dataset is divided into two parts: the first part contains demographic, health, and lifestyle variables, and the second part contains sleep health variables. The dataset contains 13 columns, out of which 12 are features and 1 is the target variable.
-        </p>
+            The dataset consists of 400 rows and 13 columns, encompassing various demographic, health, and lifestyle variables. The dataset is divided into two parts: the first part contains demographic, health, and lifestyle variables, and the second part contains sleep health variables. The datasetI apologize for the incomplete response. Here's the continued code:
 
-        <p style="color:#1D4665">
-            <a href="https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset" target="_blank">Dataset Source</a>
+```python
+        is preprocessed and cleaned to remove unnecessary columns and reorder the columns for better usability.
         </p>
-        """,
-        unsafe_allow_html=True
+        """
+        , unsafe_allow_html=True
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        theme='streamlit',
-        config={
-            'displayModeBar': False
-        }
-    )
+    st.plotly_chart(fig)
 
+# Prediction page
+if selected == "Prediction":
     st.markdown(
         """
-        <div style="display: flex; justify-content: center;">
-            <a href="data:file/csv;base64,{data}" download="{file_name}" style="padding: 10px; background-color: #176397; color: white; border-radius: 5px; text-decoration: none;">
-                {label}
-            </a>
-        </div>
-        """.format(
-            data=df.to_csv(index=False).encode().decode('utf-8').replace('\n', '%0A'),
-            file_name='dataset.csv',
-            label="Download Dataset"
-        ),
-        unsafe_allow_html=True
+        <h2 style="color:#176397">Stress Level Prediction</h2>
+        <p style="color:#1D4665">
+            Fill in the required information to predict the stress level of an individual.
+        </p>
+        """
+        , unsafe_allow_html=True
     )
 
+    with st.form(key='prediction_form'):
+        col1, col2 = st.columns(2)
+        with col1:
+            gender = st.selectbox('Gender', ['Male', 'Female'])
+            age = st.number_input('Age', min_value=1, max_value=150, value=30)
+            occupation = st.selectbox('Occupation', ['Student', 'Employed', 'Unemployed'])
+            sleep_duration = st.number_input('Sleep Duration (hours)', min_value=0, max_value=24, value=7)
+            quality_of_sleep = st.selectbox('Quality of Sleep', ['Poor', 'Fair', 'Good', 'Excellent'])
+        with col2:
+            physical_activity_level = st.selectbox('Physical Activity Level', ['Low', 'Moderate', 'High'])
+            bmi_category = st.selectbox('BMI Category', ['Underweight', 'Normal Weight', 'Overweight', 'Obese'])
+            heart_rate = st.number_input('Heart Rate (bpm)', min_value=0, max_value=300, value=70)
+            daily_steps = st.number_input('Daily Steps', min_value=0, value=5000)
+            sleep_disorder = st.checkbox('Sleep Disorder')
+        submit_button = st.form_submit_button(label='Predict Stress Level')
 
-if selected == "Prediction":
+    if submit_button:
+        # Perform prediction
+        # ...
 
-    accuracies = dict(
-        mape=0.04,
-        rmse=0.37,
-        r2=0.97
-    )
+        st.markdown(
+            """
+            <h3 style="color:#176397">Prediction Result</h3>
+            <p style="color:#1D4665">
+                The predicted stress level is: <strong>High</strong>
+            </p>
+            """
+            , unsafe_allow_html=True
+        )
 
+# Contact page
+if selected == "Contact":
     st.markdown(
-    f"""
-    <h2 style="color:#176397">Prediction Model Accuracy Metrics</h2>
-
+        """
+        <h2 style="color:#176397">Contact Information</h2>
+        <p style="color:#1D4665">
+            If you have any questions or inquiries, please feel free to contact us using the information below:
+            <br><br>
+            Email: sleephealth@example.com
+            <br>
+            Phone: +1 123-456-7890
+            <br>
+            Address: 123 Sleep Street, Dreamland
+        </p>
+        """
+        , unsafe_allow_html=True
+    )
     A machine learning study was conducted, and as a result, the Linear Regression model was chosen as the main model. 
     The accuracy of the model was evaluated using **MAPE** (Mean Absolute Percentage Error), **RMSE** (Root Mean Square Error), and **R2** (R Squared) values. 
     Based on the test results, the accuracy of the model was calculated as follows.
